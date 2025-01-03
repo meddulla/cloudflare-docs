@@ -37,8 +37,8 @@ A successful response will have a status code of `200` and be similar to the fol
 {
   "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
   "api": "https://api.cloudflare.com/client/v4/accounts/<accountId>/urlscanner/v2/result/095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
-  "visibility": "public"
-  "url": "https://www.example.com"
+  "visibility": "public",
+  "url": "https://www.example.com",
   "message": "Submission successful"
 }
 ```
@@ -72,22 +72,22 @@ There will also be three screenshots taken of the webpage, one per target device
 
 Once the URL Scan submission is made, the current progress can be checked by calling `https://api.cloudflare.com/client/v4/accounts/{account_id}/urlscanner/v2/result/{scan_id}`. The `scan_id` will be the `uuid` value returned in the previous response.
 
-While the scan is in progress, the HTTP status code will be `404`, once it's finished it will be `200`. Clients are advised to poll every 10-30 seconds.
+While the scan is in progress, the HTTP status code will be `404`; once it is finished, it will be `200`. Cloudflare recommends that you poll every 10-30 seconds.
 
 The response will include, among others, the following top properties:
 
 * `task` - Information on the scan submission.
-* `page` - Information pertaining to the primary response, for example IP address, ASN, server and page redirect history.
+* `page` - Information pertaining to the primary response, for example IP address, ASN, server, and page redirect history.
 * `data.requests` - Request chains involved in the page load.
 * `data.cookies` - Cookies set by the page.
 * `data.globals` - Non-standard JavaScript global variables.
 * `data.console` - Console logs.
 * `data.performance` - Timings as given by the [`PerformanceNavigationTiming`](https://developer.mozilla.org/en-US/docs/Web/API/PerformanceNavigationTiming) interface.
-* `meta` - Meta processors output including detected technologies, domain and URL categories, rank, geoip information and others.
+* `meta` - Meta processors output including detected technologies, domain and URL categories, rank, geolocation information, and others.
 * `lists.ips` - IPs contacted.
 * `lists.asns` - AS Numbers contacted.
 * `lists.domains` - Hostnames contacted, including `dns` record information.
-* `lists.hashes` - Hashes of response bodies, of the main page HTML structure, screenshots and favicons.
+* `lists.hashes` - Hashes of response bodies, of the main page HTML structure, screenshots, and favicons.
 * `lists.certificates` - TLS certificates of HTTP responses.
 * `verdicts` - Verdicts on malicious content.
 
@@ -100,12 +100,12 @@ Some examples of more specific properties include:
 * `meta.processors.domainCategories` - Cloudflare categories of the main hostname contacted.
 * `meta.processors.phishing` - What kind of phishing, if any, was detected.
 * `meta.processors.radarRank` - [Cloudflare Radar Rank](http://blog.cloudflare.com/radar-domain-rankings/) of the main hostname contacted.
-* `meta.processors.wappa` - What kind of technologies were detected as being in use by the website, with the help of [Wappalyzer](https://github.com/Lissy93/wapalyzer).
+* `meta.processors.wappa` - The kind of technologies detected as being in use by the website, with the help of [Wappalyzer](https://github.com/Lissy93/wapalyzer).
 * `page.url` - URL of the primary request, after all HTTP redirects.
 * `page.country` - GeoIP country name of the main IP address contacted.
 * `page.history` - Main page history, including any HTTP redirects.
-* `page.screenshot` - Various hashes of the main screenshot, can be used to search for sites with similar screenshots.
-* `page.domStructHash` - HTML structure hash, use it to search for sites with similar structure.
+* `page.screenshot` - Various hashes of the main screenshot. Can be used to search for sites with similar screenshots.
+* `page.domStructHash` - HTML structure hash. Use it to search for sites with similar structure.
 * `page.favicon.hash` - MD5 hash of the favicon.
 * `verdicts.overall.malicious` - Whether the website was considered malicious *at the time of the scan*. Please check the remaining properties for each subsystem(s) for specific threats detected.
 
@@ -115,7 +115,7 @@ To fetch the scan's [screenshots](/api/resources/url_scanner/subresources/scans/
 
 ### Search scans
 
-Use a subset of ElasticSearch Query syntax to filter scans.  Search results will include `Public` scans and your *own* `Unlisted` scans.
+Use a subset of ElasticSearch Query syntax to filter scans.  Search results will include `Public` scans and your own `Unlisted` scans.
 
 To search for scans to the hostname `google.com`, use the query parameter `q=page.domain:"google.com"`:
 
@@ -134,12 +134,12 @@ curl "https://api.cloudflare.com/client/v4/accounts/{account_id}/urlscanner/v2/s
 
 Some other example queries:
 
-- `task.url:"https://google.com" OR task.url:"https://www.google.com"` - search for scans whose submitted URL was either `google.com` or `www.google.com`. URLs *must* be enclosed in quotes.
-- `page.url:"https://google.com" AND NOT task.url:"https://google.com"` - search for scans to `google.com` whose submitted url was not `google.com` (that is, sites that redirected to google.com)
-- `page.domain:microsoft AND verdicts.malicious:true AND NOT page.domain:microsoft.com`: malicious scans whose hostname starts with "microsoft". Would match domains like "microsoft.phish.com"
-- `apikey:me AND date:[2024-01 TO 2024-10]`: my scans from 2024 January to 2024 October.
-- `page.domain:(blogspot OR www.blogspot)`: Searches for scans whose main domain starts with `blogspot` or with `www.blogspot`
-- `date:>now-7d AND path:okta-sign-in.min.js`: scans from the last 7 days with any request path that ends with `okta-sign-in.min.js`
+- `task.url:"https://google.com" OR task.url:"https://www.google.com"`: Search for scans whose submitted URL was either `google.com` or `www.google.com`. URLs must be enclosed in quotes.
+- `page.url:"https://google.com" AND NOT task.url:"https://google.com"`: Search for scans to `google.com` whose submitted URL was not `google.com` (that is, sites that redirected to google.com).
+- `page.domain:microsoft AND verdicts.malicious:true AND NOT page.domain:microsoft.com`: Malicious scans whose hostname starts with `microsoft`. Would match domains like `microsoft.phish.com`.
+- `apikey:me AND date:[2024-01 TO 2024-10]`: Your scans from January 2024 to October 2024.
+- `page.domain:(blogspot OR www.blogspot)`: Searches for scans whose main domain starts with `blogspot` or with `www.blogspot`.
+- `date:>now-7d AND path:okta-sign-in.min.js`: Scans from the last seven days with any request path that ends with `okta-sign-in.min.js`.
 - `page.asn:AS24940 AND hash:-557369673`: Websites hosted in AS24940 where a resource with the given hash was retrieved.
 - `hash:8f662c2ce9472ba8d03bfeb8cdae112dbc0426f99da01c5d70c7eb4afd5893ca`: Using the hash at `page.domStructHash` search for other scans with the same HTML structure hash.
 
@@ -148,9 +148,13 @@ Go to [Search URL scans](/api/resources/url_scanner/subresources/scans/methods/l
 
 ### Security Center
 
-Alternatively, you can search in the **Security Center**, by going to the [Cloudflare dashboard](https://dash.cloudflare.com/), selecting your account, and then going to **Security Center** > **Investigate** > Enter query > Select **Search**.
+Alternatively, you can search in the Security Center:
 
-In the Security Center, you can easily retrieve information already pre-filtered by:
+1. Log in to the [Cloudflare dashboard](https://dash.cloudflare.com/) and select your account.
+2. Go to **Security Center** > **Investigate**.
+3. Enter your query and select **Search**.
+
+In the Security Center, you can retrieve information already pre-filtered by:
 
 - Similar screenshot
 - Identical favicon
